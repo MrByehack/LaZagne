@@ -31,9 +31,9 @@ class RPC_SID(DataStruct):
         self.subAuth = data.eat("%dL" % n)
 
     def __str__(self):
-        s = ["S-%d-%d" % (self.version, self.idAuth)]
-        s += ["%d" % x for x in self.subAuth]
-        return "-".join(s)
+        s = [b"S-%d-%d" % (self.version, self.idAuth)]
+        s += [b"%d" % x for x in self.subAuth]
+        return b"-".join(s)
 
 
 class CredhistEntry(DataStruct):
@@ -73,7 +73,7 @@ class CredhistEntry(DataStruct):
         self.encrypted = data.eat_string(n)
 
         self.revision2 = data.eat("L")
-        self.guid = "%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % data.eat("L2H8B")
+        self.guid = b"%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % data.eat("L2H8B")
 
     def decrypt_with_hash(self, pwdhash):
         """
@@ -113,7 +113,7 @@ class CredHistFile(DataStruct):
             self.addEntry(data.pop_string(l - 4))
 
         self.footmagic = data.eat("L")
-        self.curr_guid = "%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % data.eat("L2H8B")
+        self.curr_guid = b"%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % data.eat("L2H8B")
 
     def addEntry(self, blob):
         """
