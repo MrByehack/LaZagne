@@ -70,10 +70,10 @@ class CryptoAlgo(object):
 
     name = property(lambda self: self.algo.name)
     module = property(lambda self: self.algo.module)
-    keyLength = property(lambda self: self.algo.keyLength / 8)
-    ivLength = property(lambda self: self.algo.IVLength / 8)
-    blockSize = property(lambda self: self.algo.blockLength / 8)
-    digestLength = property(lambda self: self.algo.digestLength / 8)
+    keyLength = property(lambda self: self.algo.keyLength // 8)
+    ivLength = property(lambda self: self.algo.IVLength // 8)
+    blockSize = property(lambda self: self.algo.blockLength // 8)
+    digestLength = property(lambda self: self.algo.digestLength // 8)
 
     def do_fixup_key(self, key):
         try:
@@ -158,7 +158,7 @@ def CryptSessionKeyXP(masterkey, nonce, hashAlgo, entropy=None, strongPassword=N
     if entropy is not None:
         digest.update(entropy)
     if strongPassword is not None:
-        strongPassword = hashlib.sha1(strongPassword.rstrip("\x00").encode("UTF-16LE")).digest()
+        strongPassword = hashlib.sha1(strongPassword.rstrip(b"\x00").encode("UTF-16LE")).digest()
         digest.update(strongPassword)
     elif verifBlob is not None:
         digest.update(verifBlob)
@@ -188,7 +188,7 @@ def CryptSessionKeyWin7(masterkey, nonce, hashAlgo, entropy=None, strongPassword
     if entropy is not None:
         digest.update(entropy)
     if strongPassword is not None:
-        strongPassword = hashlib.sha512(strongPassword.rstrip("\x00").encode("UTF-16LE")).digest()
+        strongPassword = hashlib.sha512(strongPassword.rstrip(b"\x00").encode("UTF-16LE")).digest()
         digest.update(strongPassword)
     elif verifBlob is not None:
         digest.update(verifBlob)
@@ -239,12 +239,12 @@ def decrypt_lsa_key_nt6(lsakey, syskey):
 
     size = struct.unpack_from("<L", keys)[0]
     keys = keys[16:16 + size]
-    currentkey = "%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", keys[4:20])
+    currentkey = b"%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", keys[4:20])
     nb = struct.unpack("<L", keys[24:28])[0]
     off = 28
     kd = {}
     for i in range(nb):
-        g = "%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", keys[off:off + 16])
+        g = b"%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", keys[off:off + 16])
         t, l = struct.unpack_from("<2L", keys[off + 16:])
         k = keys[off + 24:off + 24 + l]
         kd[g] = {"type": t, "key": k}
@@ -258,7 +258,7 @@ def SystemFunction005(secret, key):
     Reproduces the corresponding Windows internal function.
     Taken from creddump project https://code.google.com/p/creddump/
     """
-    decrypted_data = ''
+    decrypted_data = b''
     j = 0
     algo = CryptoAlgo(0x6603)
     for i in range(0, len(secret), 8):
@@ -287,12 +287,12 @@ def decrypt_lsa_secret(secret, lsa_keys):
     """
     This function replaces SystemFunction005 for newer Windows
     """
-    keyid = "%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", secret[4:20])
+    keyid = b"%0x-%0x-%0x-%0x%0x-%0x%0x%0x%0x%0x%0x" % struct.unpack("<L2H8B", secret[4:20])
     if keyid not in lsa_keys:
         return None
     algo = struct.unpack("<L", secret[20:24])[0]
     dg = hashlib.sha256()
-    dg.update(lsa_keys[keyid]["key"])
+    dg.update(lsa_keys[keyid][b"key"])
     for i in xrange(1000):
         dg.update(secret[28:60])
 
